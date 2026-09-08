@@ -198,3 +198,17 @@ if(x){let r=document.getElementById("appointmentResult");r.style.display="block"
 </script>
 </body>
 </html>
+<!-- Add near the bottom of index.html, before </body> -->
+<script src="medicine-reminder.js"></script>
+
+<!-- Example: hook up your "Add Medicine" form -->
+<script>
+  document.getElementById('addMedicineForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const name = document.getElementById('medName').value;
+    const dosage = document.getElementById('medDosage').value;
+    const time = new Date(document.getElementById('medTime').value); // from <input type="datetime-local">
+    addMedicine(name, dosage, time);
+    alert('Reminder set for ' + name + '!');
+  });
+</script>
