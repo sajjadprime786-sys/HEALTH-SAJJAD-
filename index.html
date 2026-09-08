@@ -298,35 +298,4 @@ function triggerMedicationAlarm(medicine) {
     console.log("Browser blocked automatic audio playback.");
   });
 
-  alert(`💊 Medication Time!\n\nIt's time for: ${medicine}`);
-
-  // Stop sound after 30 seconds
-  setTimeout(() => {
-    sound.pause();
-    sound.currentTime = 0;
-  }, 30000);
-}
-
-
-// Restore saved alarm after page refresh
-window.addEventListener("load", function () {
-
-  const savedAlarm = localStorage.getItem("medicationAlarm");
-
-  if (savedAlarm) {
-    medicationAlarm = JSON.parse(savedAlarm);
-
-    document.getElementById("medicineName").value =
-      medicationAlarm.medicine;
-
-    document.getElementById("medicineTime").value =
-      medicationAlarm.time;
-
-    document.getElementById("alarmStatus").textContent =
-      `⏰ Alarm set for ${medicationAlarm.medicine} at ${medicationAlarm.time}`;
-  }
-
-});
-</script>
-alarm.mp3 from my records marcotony Ring tone 
-notification bar permission granted
+  
