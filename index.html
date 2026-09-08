@@ -88,15 +88,22 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 
 <section class="card" id="medicines" style="margin-top:25px">
 <h2>💊 Medicine List & Schedule</h2>
-<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.</p>
-
-<input id="medName" placeholder="Medicine name">
+<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.<input id="medName" placeholder="Medicine name">
 <input id="medTime" type="time">
 <button class="btn" onclick="addMedicine()">Add Medicine</button>
-
 <div id="medicineList" style="margin-top:16px"></div>
-</section>
+<section class="card" id="medicines" style="margin-top:25px">
+  <h2>💊 Medicine List & Schedule</h2>
+  <p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor...</p>
 
+  <input id="medName" placeholder="Medicine name">
+  <input id="medTime" type="time">
+  <input id="medDoctor" placeholder="Prescribed by (Doctor name)">
+  <textarea id="medInstructions" placeholder="Instructions (e.g. take after food, twice daily)" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc;min-height:60px"></textarea>
+  <button class="btn" onclick="addMedicine()">Add Medicine</button>
+
+  <div id="medicineList" style="margin-top:16px"></div>
+</section>
 <section class="fever" id="fever">
 <h2>🌡️ Fever & Recovery Guide</h2>
 <p style="margin-top:8px;color:var(--m);line-height:1.6">If you have a fever, focus on staying comfortable, hydrated and rested while monitoring how you feel.</p>
