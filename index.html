@@ -212,3 +212,120 @@ if(x){let r=document.getElementById("appointmentResult");r.style.display="block"
     alert('Reminder set for ' + name + '!');
   });
 </script>
+<div class="medication-alarm">
+  <h2>💊 Medication Alarm</h2>
+
+  <input id="medicineName" type="text" placeholder="Medicine name">
+
+  <input id="medicineTime" type="time">
+
+  <button onclick="setMedicationAlarm()">
+    Set Medication Alarm
+  </button>
+
+  <p id="alarmStatus">No alarm set.</p>
+</div>
+
+<audio id="medicationAlarmSound" preload="auto">
+  <source src="alarm.mp3" type="audio/mpeg">
+</audio>
+<script>
+let medicationAlarm = null;
+let alarmTriggeredToday = false;
+
+function setMedicationAlarm() {
+  const medicine = document.getElementById("medicineName").value.trim();
+  const time = document.getElementById("medicineTime").value;
+  const status = document.getElementById("alarmStatus");
+
+  if (!medicine || !time) {
+    alert("Please enter the medicine name and time.");
+    return;
+  }
+
+  medicationAlarm = {
+    medicine: medicine,
+    time: time
+  };
+
+  alarmTriggeredToday = false;
+
+  status.textContent =
+    `⏰ Alarm set for ${medicine} at ${time}`;
+
+  // Save it so refreshing the page doesn't immediately remove it
+  localStorage.setItem(
+    "medicationAlarm",
+    JSON.stringify(medicationAlarm)
+  );
+}
+
+// Check the time every second
+setInterval(function () {
+  if (!medicationAlarm) return;
+
+  const now = new Date();
+
+  const currentHour = String(now.getHours()).padStart(2, "0");
+  const currentMinute = String(now.getMinutes()).padStart(2, "0");
+
+  const currentTime = `${currentHour}:${currentMinute}`;
+
+  if (
+    currentTime === medicationAlarm.time &&
+    !alarmTriggeredToday
+  ) {
+    triggerMedicationAlarm(medicationAlarm.medicine);
+    alarmTriggeredToday = true;
+  }
+
+  // Allow the alarm to work again the next day
+  if (currentTime === "00:00") {
+    alarmTriggeredToday = false;
+  }
+
+}, 1000);
+
+
+// Trigger alarm
+function triggerMedicationAlarm(medicine) {
+
+  const sound = document.getElementById("medicationAlarmSound");
+
+  // Play alarm sound
+  sound.currentTime = 0;
+  sound.play().catch(() => {
+    console.log("Browser blocked automatic audio playback.");
+  });
+
+  alert(`💊 Medication Time!\n\nIt's time for: ${medicine}`);
+
+  // Stop sound after 30 seconds
+  setTimeout(() => {
+    sound.pause();
+    sound.currentTime = 0;
+  }, 30000);
+}
+
+
+// Restore saved alarm after page refresh
+window.addEventListener("load", function () {
+
+  const savedAlarm = localStorage.getItem("medicationAlarm");
+
+  if (savedAlarm) {
+    medicationAlarm = JSON.parse(savedAlarm);
+
+    document.getElementById("medicineName").value =
+      medicationAlarm.medicine;
+
+    document.getElementById("medicineTime").value =
+      medicationAlarm.time;
+
+    document.getElementById("alarmStatus").textContent =
+      `⏰ Alarm set for ${medicationAlarm.medicine} at ${medicationAlarm.time}`;
+  }
+
+});
+</script>
+alarm.mp3
