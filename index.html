@@ -16,6 +16,7 @@ header button{font-size:19px}
 .hero h1{font-size:38px;line-height:1.12}.hero span{color:var(--b)}
 .hero p{margin:14px 0 20px;color:var(--m);line-height:1.6;max-width:620px}
 .btn{border:0;background:var(--b);color:#fff;padding:12px 18px;border-radius:10px;font-weight:bold;cursor:pointer}
+.btn.secondary{background:#eef7ff;color:var(--b);border:1px solid #cfe4ff}
 .container{width:88%;max-width:1150px;margin:28px auto}
 .title{font-size:23px;margin-bottom:16px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
@@ -41,7 +42,7 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 .reminder-banner{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}
 .reminder-banner.ok{background:#eafff2;border:1px solid #b8f0cf;color:#166a3e}
 .reminder-banner.warn{background:#fff8e6;border:1px solid #ffe1a1;color:#8a5a00}
-  @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.dashboard,.tools{grid-template-columns:1fr}.advice{grid-template-columns:1fr}}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.dashboard,.tools{grid-template-columns:1fr}.advice{grid-template-columns:1fr}}
 @media(max-width:480px){.grid{grid-template-columns:1fr}.container{width:92%}.hero h1{font-size:32px}}
 </style>
 </head>
@@ -73,7 +74,6 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 </div>
 <div class="card"><h2>🌟 Healthy Habits</h2><br><p>💧 Drink fluids regularly</p><br><p>🥗 Eat balanced meals</p><br><p>😴 Get enough sleep</p><br><p>🏃 Stay active when healthy</p><br><p>🧼 Wash hands regularly</p></div>
 </section>
-
 <section class="tools">
 <div class="card"><h2>❤️ BMI Calculator</h2><p>For general information only.</p>
 <input id="height" type="number" placeholder="Height in cm">
@@ -90,12 +90,14 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 
 <section class="card" id="medicines" style="margin-top:25px">
 <h2>💊 Medicine List & Schedule</h2>
-<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.</p><input id="medName" placeholder="Medicine name">
+<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.</p>
+
 <button class="btn secondary" onclick="enableReminders()">🔔 Enable Reminders (tap once)</button>
 <div id="reminderStatus" class="reminder-banner warn">
   Tap "Enable Reminders" once so this browser is allowed to alert you with sound and notifications — even when this tab isn't in focus.
 </div>
-  <input id="medTime" type="time">
+<input id="medName" placeholder="Medicine name" style="margin-top:14px">
+<input id="medTime" type="time">
 <input id="medDoctor" placeholder="Prescribed by (Doctor name)">
 <textarea id="medInstructions" placeholder="Instructions (e.g. take after food, twice daily)" style="min-height:60px"></textarea>
 <button class="btn" onclick="addMedicine()">Add Medicine</button>
@@ -120,7 +122,7 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 <div class="card" style="margin-top:25px"><h2>🚨 Emergency</h2><p style="margin:10px 0 15px">This website is not an emergency medical service. For a serious emergency, contact your local emergency service immediately.</p><button class="btn" onclick="alert('If this is a serious emergency, get an adult and contact your local emergency service immediately.')">Get Emergency Help</button></div>
 </div>
 
-<audio id="medicationAlarmSound" preload="auto">
+<audio id="medicationAlarmSound" preload="auto" loop>
   <source src="alarm.mp3" type="audio/mpeg">
 </audio>
 
@@ -150,6 +152,9 @@ function saveAppointment(){
   localStorage.setItem("appointment",d+" — "+date);
   r.innerHTML="✅ Saved locally<br><strong>"+d+"</strong> — "+date;
 }
+
+/* ---------- Reminders: permission + service worker setup ---------- */
+
 let remindersReady = false;
 
 function updateReminderBanner(){
@@ -165,11 +170,13 @@ function updateReminderBanner(){
 }
 
 function enableReminders(){
+  // 1) Unlock audio playback (browsers require a real tap before allowing sound).
   const sound = document.getElementById("medicationAlarmSound");
   if(sound){
     sound.play().then(()=>{ sound.pause(); sound.currentTime = 0; }).catch(()=>{});
   }
 
+  // 2) Ask for notification permission.
   if('Notification' in window){
     Notification.requestPermission().then(function(){
       remindersReady = true;
@@ -180,16 +187,18 @@ function enableReminders(){
     updateReminderBanner();
   }
 
+  // 3) Register the service worker so notifications can show even when
+  //    this tab is minimized / not focused (browser still needs to be running).
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(function(err){
       console.log("Service worker registration failed:", err);
     });
   }
 }
-function addMedicine(){
-  const sound = document.getElementById("medicationAlarmSound");
-  if(sound){ sound.play().then(()=>{ sound.pause(); sound.currentTime = 0; }).catch(()=>{}); }
 
+/* ---------- Medicines ---------- */
+
+function addMedicine(){
   const name = document.getElementById("medName").value.trim();
   const time = document.getElementById("medTime").value;
   const doctor = document.getElementById("medDoctor").value.trim();
@@ -249,7 +258,10 @@ function escapeHtml(s){
   return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
 
+/* ---------- Alarm: ring the sound AND fire a real notification ---------- */
+
 function triggerAlarm(medicine){
+  // Ring the sound for 15 seconds, looping.
   const sound = document.getElementById("medicationAlarmSound");
   if(sound){
     sound.currentTime = 0;
@@ -260,6 +272,8 @@ function triggerAlarm(medicine){
   const title = "💊 Medication Time!";
   const body = "It's time for: " + medicine;
 
+  // Prefer a service-worker notification — this shows even if the tab
+  // isn't focused, as long as the browser is running.
   if('serviceWorker' in navigator && navigator.serviceWorker.controller){
     navigator.serviceWorker.ready.then(function(reg){
       reg.showNotification(title, {
@@ -272,9 +286,9 @@ function triggerAlarm(medicine){
   } else if('Notification' in window && Notification.permission === 'granted'){
     new Notification(title, { body: body });
   } else {
+    // Fallback if reminders were never enabled.
     alert(title + "\n\n" + body);
   }
-}
 }
 
 setInterval(function(){
@@ -298,23 +312,12 @@ setInterval(function(){
 
 window.onload=function(){
   renderMedicines();
+  updateReminderBanner();
   let x=localStorage.getItem("appointment");
   if(x){let r=document.getElementById("appointmentResult");r.style.display="block";r.innerHTML="📅 Saved appointment:<br><strong>"+x+"</strong>"}
 }
 </script>
 </body>
-                                  </html>
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+</html>
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window' }).then((clientsArr) => {
-      if (clientsArr.length > 0) {
-        return clientsArr[0].focus();
-      }
-      return self.clients.openWindow('./');
-    })
-  );
-});
+   
