@@ -38,7 +38,10 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 .dark{--bg:#0e1624;--c:#172235;--t:#f4f7fb;--m:#aab5c5;--bd:#27364b}
 .dark .hero{background:linear-gradient(135deg,#142b49,#172235)}
 .dark .stat,.dark .tip{background:#1d2b3f}.dark input,.dark textarea{background:#1d2b3f;color:#fff;border-color:#34445b}.dark .bottom{background:#172235;border-color:#27364b}
-@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.dashboard,.tools{grid-template-columns:1fr}.advice{grid-template-columns:1fr}}
+.reminder-banner{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}
+.reminder-banner.ok{background:#eafff2;border:1px solid #b8f0cf;color:#166a3e}
+.reminder-banner.warn{background:#fff8e6;border:1px solid #ffe1a1;color:#8a5a00}
+  @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.dashboard,.tools{grid-template-columns:1fr}.advice{grid-template-columns:1fr}}
 @media(max-width:480px){.grid{grid-template-columns:1fr}.container{width:92%}.hero h1{font-size:32px}}
 </style>
 </head>
@@ -87,9 +90,12 @@ footer{background:#111827;color:#fff;text-align:center;padding:27px;margin-top:3
 
 <section class="card" id="medicines" style="margin-top:25px">
 <h2>💊 Medicine List & Schedule</h2>
-<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.</p>
-<input id="medName" placeholder="Medicine name">
-<input id="medTime" type="time">
+<p style="margin:8px 0 15px">Add medicines that were prescribed or recommended by a doctor, along with the time you were told to take them.</p><input id="medName" placeholder="Medicine name">
+<button class="btn secondary" onclick="enableReminders()">🔔 Enable Reminders (tap once)</button>
+<div id="reminderStatus" class="reminder-banner warn">
+  Tap "Enable Reminders" once so this browser is allowed to alert you with sound and notifications — even when this tab isn't in focus.
+</div>
+  <input id="medTime" type="time">
 <input id="medDoctor" placeholder="Prescribed by (Doctor name)">
 <textarea id="medInstructions" placeholder="Instructions (e.g. take after food, twice daily)" style="min-height:60px"></textarea>
 <button class="btn" onclick="addMedicine()">Add Medicine</button>
@@ -144,7 +150,42 @@ function saveAppointment(){
   localStorage.setItem("appointment",d+" — "+date);
   r.innerHTML="✅ Saved locally<br><strong>"+d+"</strong> — "+date;
 }
+let remindersReady = false;
 
+function updateReminderBanner(){
+  const banner = document.getElementById("reminderStatus");
+  const notifOk = ('Notification' in window) && Notification.permission === 'granted';
+  if(remindersReady && notifOk){
+    banner.className = "reminder-banner ok";
+    banner.textContent = "✅ Reminders enabled. Keep this browser running in the background so alarms can ring on time.";
+  } else {
+    banner.className = "reminder-banner warn";
+    banner.textContent = 'Tap "Enable Reminders" once so this browser is allowed to alert you with sound and notifications — even when this tab isn\'t in focus.';
+  }
+}
+
+function enableReminders(){
+  const sound = document.getElementById("medicationAlarmSound");
+  if(sound){
+    sound.play().then(()=>{ sound.pause(); sound.currentTime = 0; }).catch(()=>{});
+  }
+
+  if('Notification' in window){
+    Notification.requestPermission().then(function(){
+      remindersReady = true;
+      updateReminderBanner();
+    });
+  } else {
+    remindersReady = true;
+    updateReminderBanner();
+  }
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(function(err){
+      console.log("Service worker registration failed:", err);
+    });
+  }
+}
 function addMedicine(){
   const sound = document.getElementById("medicationAlarmSound");
   if(sound){ sound.play().then(()=>{ sound.pause(); sound.currentTime = 0; }).catch(()=>{}); }
@@ -210,8 +251,30 @@ function escapeHtml(s){
 
 function triggerAlarm(medicine){
   const sound = document.getElementById("medicationAlarmSound");
-  if(sound){ sound.currentTime = 0; sound.play().catch(()=>{ console.log("Browser blocked automatic audio playback."); }); }
-  alert("💊 Medication Time!\n\nIt's time for: " + medicine);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{ console.log("Browser blocked automatic audio playback — tap 'Enable Reminders' once."); });
+    setTimeout(()=>{ sound.pause(); sound.currentTime = 0; }, 15000);
+  }
+
+  const title = "💊 Medication Time!";
+  const body = "It's time for: " + medicine;
+
+  if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(function(reg){
+      reg.showNotification(title, {
+        body: body,
+        vibrate: [300,100,300,100,300],
+        tag: 'medicine-' + medicine,
+        requireInteraction: true
+      });
+    });
+  } else if('Notification' in window && Notification.permission === 'granted'){
+    new Notification(title, { body: body });
+  } else {
+    alert(title + "\n\n" + body);
+  }
+}
 }
 
 setInterval(function(){
@@ -241,3 +304,17 @@ window.onload=function(){
 </script>
 </body>
                                   </html>
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clientsArr) => {
+      if (clientsArr.length > 0) {
+        return clientsArr[0].focus();
+      }
+      return self.clients.openWindow('./');
+    })
+  );
+});
