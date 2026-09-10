@@ -215,6 +215,12 @@ function addMedicine(){
   document.getElementById("medDoctor").value="";
   document.getElementById("medInstructions").value="";
   renderMedicines();
+
+  const notifOk = ('Notification' in window) && Notification.permission === 'granted';
+  if(!remindersReady || !notifOk){
+    alert("⚠️ Medicine added!\n\nBut reminders aren't fully enabled yet.\nPlease tap the '🔔 Enable Reminders' button above so this alarm can RING and VIBRATE on time.");
+    document.getElementById("reminderStatus").scrollIntoView({behavior:"smooth", block:"center"});
+  }
 }
 
 function deleteMedicine(i){
