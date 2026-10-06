@@ -172,6 +172,44 @@
 
     });
   </script>
-
 </body>
 </html>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SAJJAD HEALTH CARE - Employee Dashboard</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}body{margin:0;background:#f4f7fb;color:#14202b}header{background:linear-gradient(135deg,#062235,#0b5c7a);color:#fff;padding:22px 18px}.head{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center}.brand h1{margin:0;font-size:22px}.brand p{margin:5px 0;color:#cce9f4}button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer}.logout{background:#fff;color:#0b4968}.wrap{max-width:1100px;margin:22px auto;padding:0 15px}.banner{background:#fff3cd;border-left:5px solid #f0ad00;padding:15px;border-radius:10px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 5px 18px #00000012}.card h2{margin-top:0;font-size:19px}.big{font-size:28px;font-weight:800}.muted,.note{color:#667784}.status{padding:10px;border-radius:9px;background:#eef7fb;margin:8px 0}input,textarea{width:100%;padding:12px;border:1px solid #ccd7df;border-radius:9px;margin:7px 0 12px;font-size:15px}textarea{min-height:100px;resize:vertical}.primary{background:#087ea4;color:#fff}.success{background:#16864a;color:#fff}.timer{text-align:center}.clock{font-size:44px;font-weight:800;margin:12px 0}.progress{height:12px;background:#e5ebef;border-radius:20px;overflow:hidden}.bar{height:100%;width:0;background:#16864a}.msg{margin-top:10px;padding:10px;border-radius:8px;background:#eaf7ee;display:none}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5e9ed;text-align:left;font-size:14px}
+</style></head><body>
+<header><div class="head"><div class="brand"><h1>SAJJAD HEALTH CARE</h1><p>Employee Portal</p></div><button class="logout" onclick="logout()">Logout</button></div></header>
+<main class="wrap">
+<div class="banner"><b>📢 Company Note:</b> Complete your assigned work responsibly and submit your daily report before logging out.</div>
+<div class="grid">
+<section class="card"><h2>👤 Employee Profile</h2><div class="status"><b>Employee ID:</b> <span id="eid"></span></div><div class="status"><b>Name:</b> <span id="ename"></span></div><div class="status"><b>Today's status:</b> <span id="today"></span></div></section>
+<section class="card"><h2>🟢 Attendance</h2><div class="big" id="percent">0%</div><div class="muted">This month's attendance</div><button class="success" style="margin-top:14px" onclick="present()">Mark Present Today</button><div id="attmsg" class="msg"></div></section>
+<section class="card"><h2>🏢 Company Status</h2><div class="status"><b>People visited today:</b> <span id="visitors">0</span></div><div class="status"><b>Company status:</b> <span id="cstatus">Operational</span></div><div class="status"><b>Date:</b> <span id="date"></span></div></section>
+<section class="card timer"><h2>⏱️ 2-Hour Work Timer</h2><p class="muted">You are expected to complete 2 hours of work today.</p><div class="clock" id="clock">02:00:00</div><div class="progress"><div class="bar" id="bar"></div></div><button class="primary" id="timerBtn" onclick="toggleTimer()">Start 2-Hour Work</button><p class="note" id="tnote">Start the timer when you begin work.</p></section>
+<section class="card"><h2>📝 Daily Work Report</h2><label>What did you do for the company today?</label><textarea id="work" placeholder="Write your work completed today..."></textarea><label>How did it help the company?</label><textarea id="impact" placeholder="Explain the result or impact..."></textarea><button class="primary" onclick="report()">Submit Report to CEO</button><div id="rmsg" class="msg"></div></section>
+<section class="card"><h2>💡 Improvement Suggestion</h2><textarea id="suggestion" placeholder="What can we improve after today's work?"></textarea><button class="primary" onclick="suggest()">Submit Suggestion</button><div id="smsg" class="msg"></div></section>
+</div>
+<section class="card" style="margin-top:18px"><h2>📅 Monthly Attendance</h2><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody id="attTable"></tbody></table></section>
+<section class="card" style="margin-top:18px"><h2>📨 Today's Submission Status</h2><div class="status">Daily report: <b id="rstatus">Not submitted</b></div><div class="status">Suggestion: <b id="sstatus">Not submitted</b></div><div class="status">2-hour work: <b id="tstatus">Not completed</b></div><p class="note">Reports and logout records are saved in this browser. Real CEO notifications across devices require a backend.</p></section>
+</main>
+<script>
+const eid=sessionStorage.getItem('employeeId')||'EMP001', d=new Date(), key=d.toISOString().slice(0,10);document.getElementById('eid').textContent=eid;document.getElementById('ename').textContent=eid==='EMP001'?'Employee 001':eid;document.getElementById('date').textContent=d.toLocaleDateString('en-IN');
+const ak='sajjad_attendance_'+eid,rk='sajjad_reports_'+eid,sk='sajjad_suggestions_'+eid,lk='sajjad_logout_events',tk='sajjad_timer_'+eid+'_'+key;
+function msg(id,t){let e=document.getElementById(id);e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
+function attendance(){return JSON.parse(localStorage.getItem(ak)||'{}')}
+function render(){let a=attendance(),y=d.getFullYear(),m=d.getMonth(),days=new Date(y,m+1,0).getDate(),p=0,rows='';for(let x=1;x<=days;x++){let k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(x).padStart(2,'0'),s=a[k]||'Not marked';if(s==='Present')p++;rows+=`<tr><td>${x}/${m+1}/${y}</td><td>${s}</td></tr>`}document.getElementById('attTable').innerHTML=rows;document.getElementById('percent').textContent=Math.round(p/Math.max(1,d.getDate())*100)+'%';document.getElementById('today').textContent=a[key]||'Not marked'}
+function present(){let a=attendance();a[key]='Present';localStorage.setItem(ak,JSON.stringify(a));render();msg('attmsg','Attendance marked Present for today.')}
+render();
+let old=JSON.parse(localStorage.getItem(rk)||'{}');if(old.date===key){work.value=old.work||'';impact.value=old.impact||'';rstatus.textContent='Submitted'}let oldS=JSON.parse(localStorage.getItem(sk)||'{}');if(oldS.date===key){suggestion.value=oldS.text||'';sstatus.textContent='Submitted'}
+function report(){let w=work.value.trim();if(!w)return alert('Please write what you worked on today.');localStorage.setItem(rk,JSON.stringify({employeeId:eid,date:key,work:w,impact:impact.value.trim(),submittedAt:new Date().toISOString()}));rstatus.textContent='Submitted';msg('rmsg','Daily report saved.')}
+function suggest(){let s=suggestion.value.trim();if(!s)return alert('Please enter an improvement suggestion.');localStorage.setItem(sk,JSON.stringify({employeeId:eid,date:key,text:s,submittedAt:new Date().toISOString()}));sstatus.textContent='Submitted';msg('smsg','Suggestion saved.')}
+const TOTAL=7200;let td=JSON.parse(localStorage.getItem(tk)||'{"remaining":7200,"running":false}'),timer=null;function update(){let h=Math.floor(td.remaining/3600),m=Math.floor(td.remaining%3600/60),s=td.remaining%60;clock.textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');bar.style.width=((TOTAL-td.remaining)/TOTAL*100)+'%';if(td.remaining<=0){td.remaining=0;td.running=false;timerBtn.textContent='2 Hours Completed';timerBtn.disabled=true;tstatus.textContent='Completed';tnote.textContent='Excellent. Your 2-hour work session is complete.';clearInterval(timer)}}function saveT(){localStorage.setItem(tk,JSON.stringify(td))}function toggleTimer(){if(td.remaining<=0)return;td.running=!td.running;if(td.running){timerBtn.textContent='Pause Work Timer';timer=setInterval(()=>{if(td.remaining>0)td.remaining--;saveT();update()},1000)}else{clearInterval(timer);timerBtn.textContent='Resume Work Timer'}saveT();update()}update();
+function logout(){let a=JSON.parse(localStorage.getItem(lk)||'[]');a.push({employeeId:eid,date:key,time:new Date().toLocaleString('en-IN'),message:'Employee logged out from SAJJAD HEALTH CARE'});localStorage.setItem(lk,JSON.stringify(a));sessionStorage.removeItem('employeeId');sessionStorage.removeItem('employeeLoginTime');alert('Logout recorded successfully.');location.href='employee-login.html'}
+</script></body></html>
