@@ -1,210 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Login | SAJJAD HEALTH CARE</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      padding: 20px;
-    }
-
-    .login-box {
-      width: 100%;
-      max-width: 400px;
-      background: white;
-      padding: 35px 30px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-      text-align: center;
-    }
-
-    .logo {
-      width: 75px;
-      height: 75px;
-      margin: 0 auto 15px;
-      border-radius: 50%;
-      background: #0d8f83;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      font-weight: bold;
-    }
-
-    h1 {
-      color: #12343b;
-      font-size: 24px;
-      margin-bottom: 5px;
-    }
-
-    .subtitle {
-      color: #777;
-      font-size: 14px;
-      margin-bottom: 28px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #0d8f83;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      background: #0d8f83;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #08756b;
-    }
-
-    #message {
-      margin-top: 15px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .footer {
-      margin-top: 25px;
-      font-size: 12px;
-      color: #999;
-    }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SAJJAD HEALTH CARE - Employee Login</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#062235,#0b5c7a);color:#14202b;padding:20px}
+.card{background:#fff;border-radius:18px;padding:34px 28px;max-width:360px;width:100%;box-shadow:0 10px 30px #00000030}
+.brand{text-align:center;margin-bottom:22px}
+.brand h1{margin:0;font-size:21px;color:#062235}
+.brand p{margin:5px 0 0;color:#667784;font-size:13px}
+label{font-size:13px;font-weight:700;color:#0b4968;display:block;margin-bottom:5px}
+input{width:100%;padding:12px;border:1px solid #ccd7df;border-radius:9px;margin-bottom:16px;font-size:15px}
+button{width:100%;border:0;border-radius:10px;padding:13px;font-weight:700;font-size:15px;cursor:pointer;background:#087ea4;color:#fff}
+button:active{background:#06607d}
+.err{background:#fde8e8;color:#9b1c1c;padding:10px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+.hint{text-align:center;margin-top:16px;font-size:12px;color:#8a99a5}
+.lockout{background:#fff3cd;color:#7a5600;padding:10px;border-radius:8px;font-size:12px;margin-bottom:14px;display:none}
+</style>
 </head>
-
 <body>
-
-  <div class="login-box">
-
-    <div class="logo">SH</div>
-
+<div class="card">
+  <div class="brand">
     <h1>SAJJAD HEALTH CARE</h1>
-    <p class="subtitle">Employee Portal</p>
-
-    <form id="loginForm">
-
-      <input
-        type="text"
-        id="employeeId"
-        placeholder="Employee ID"
-        required
-      >
-
-      <input
-        type="password"
-        id="password"
-        placeholder="Password"
-        required
-      >
-
-      <button type="submit">Employee Login</button>
-
-    </form>
-
-    <p id="message"></p>
-
-    <div class="footer">
-      Your health, our priority
-    </div>
-
+    <p>Employee Login</p>
   </div>
+  <div class="err" id="err"></div>
+  <div class="lockout" id="lockout"></div>
+  <form id="loginForm">
+    <label for="eid">Employee ID</label>
+    <input type="text" id="eid" placeholder="e.g. EMP001" autocomplete="off" />
+    <label for="pass">Password</label>
+    <input type="password" id="pass" placeholder="Enter your password" autocomplete="off" />
+    <button type="submit">Login</button>
+  </form>
+  <div class="hint">Contact your administrator if you forgot your password.</div>
+</div>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
+<script>
+/* ============================================================
+   EMPLOYEE CREDENTIALS
+   Add/edit employees here. Format: "ID": { password: "...", name: "..." }
+   NOTE: These are visible to anyone who views this page's source code.
+   This is fine for basic internal use, but not real security.
+   ============================================================ */
+const EMPLOYEES = {
+  "EMP001": { password: "pass123", name: "Employee One" },
+  "EMP002": { password: "pass456", name: "Employee Two" }
+  // Add more employees below in the same format:
+  // "EMP003": { password: "yourpassword", name: "Employee Name" },
+};
 
-      event.preventDefault();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_KEY = 'sajjad_login_attempts';
 
-      const employeeId = document.getElementById("employeeId").value;
-      const password = document.getElementById("password").value;
-      const message = document.getElementById("message")
+function getAttempts() {
+  return JSON.parse(sessionStorage.getItem(LOCKOUT_KEY) || '{"count":0}');
+}
+function saveAttempts(data) {
+  sessionStorage.setItem(LOCKOUT_KEY, JSON.stringify(data));
+}
 
-        Change these values for testing.
-      */
+document.getElementById('loginForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const eid = document.getElementById('eid').value.trim().toUpperCase();
+  const pass = document.getElementById('pass').value;
+  const errBox = document.getElementById('err');
+  const lockBox = document.getElementById('lockout');
+  errBox.style.display = 'none';
+  lockBox.style.display = 'none';
 
-      if (employeeId === "SJ0225" && password === "123456") {
+  const attempts = getAttempts();
+  if (attempts.count >= MAX_ATTEMPTS) {
+    lockBox.textContent = 'Too many failed attempts. Please refresh the page and try again later, or contact your administrator.';
+    lockBox.style.display = 'block';
+    return;
+  }
 
-        message.style.color = "green";
-        message.textContent = "Login successful!";
+  if (!eid || !pass) {
+    errBox.textContent = 'Please enter both Employee ID and Password.';
+    errBox.style.display = 'block';
+    return;
+  }
 
-        setTimeout(function() {
-          window.location.href = "employee-dashboard.html";
-        }, 800);
+  const record = EMPLOYEES[eid];
+  if (!record || record.password !== pass) {
+    attempts.count = (attempts.count || 0) + 1;
+    saveAttempts(attempts);
+    const remaining = MAX_ATTEMPTS - attempts.count;
+    errBox.textContent = remaining > 0
+      ? `Incorrect Employee ID or Password. ${remaining} attempt(s) remaining.`
+      : 'Incorrect Employee ID or Password. No attempts remaining.';
+    errBox.style.display = 'block';
+    return;
+  }
 
-      } else {
-
-        message.style.color = "red";
-        message.textContent = "Invalid Employee ID or password.";
-
-      }
-
-    });
-  </script>
+  // Successful login
+  saveAttempts({ count: 0 });
+  sessionStorage.setItem('employeeId', eid);
+  sessionStorage.setItem('employeeName', record.name);
+  sessionStorage.setItem('employeeLoginTime', new Date().toISOString());
+  window.location.href = 'employee-dashboard.html';
+});
+</script>
 </body>
 </html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SAJJAD HEALTH CARE - Employee Dashboard</title>
-<style>
-*{box-sizing:border-box;font-family:Arial,sans-serif}body{margin:0;background:#f4f7fb;color:#14202b}header{background:linear-gradient(135deg,#062235,#0b5c7a);color:#fff;padding:22px 18px}.head{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center}.brand h1{margin:0;font-size:22px}.brand p{margin:5px 0;color:#cce9f4}button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer}.logout{background:#fff;color:#0b4968}.wrap{max-width:1100px;margin:22px auto;padding:0 15px}.banner{background:#fff3cd;border-left:5px solid #f0ad00;padding:15px;border-radius:10px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 5px 18px #00000012}.card h2{margin-top:0;font-size:19px}.big{font-size:28px;font-weight:800}.muted,.note{color:#667784}.status{padding:10px;border-radius:9px;background:#eef7fb;margin:8px 0}input,textarea{width:100%;padding:12px;border:1px solid #ccd7df;border-radius:9px;margin:7px 0 12px;font-size:15px}textarea{min-height:100px;resize:vertical}.primary{background:#087ea4;color:#fff}.success{background:#16864a;color:#fff}.timer{text-align:center}.clock{font-size:44px;font-weight:800;margin:12px 0}.progress{height:12px;background:#e5ebef;border-radius:20px;overflow:hidden}.bar{height:100%;width:0;background:#16864a}.msg{margin-top:10px;padding:10px;border-radius:8px;background:#eaf7ee;display:none}table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5e9ed;text-align:left;font-size:14px}
-</style></head><body>
-<header><div class="head"><div class="brand"><h1>SAJJAD HEALTH CARE</h1><p>Employee Portal</p></div><button class="logout" onclick="logout()">Logout</button></div></header>
-<main class="wrap">
-<div class="banner"><b>📢 Company Note:</b> Complete your assigned work responsibly and submit your daily report before logging out.</div>
-<div class="grid">
-<section class="card"><h2>👤 Employee Profile</h2><div class="status"><b>Employee ID:</b> <span id="eid"></span></div><div class="status"><b>Name:</b> <span id="ename"></span></div><div class="status"><b>Today's status:</b> <span id="today"></span></div></section>
-<section class="card"><h2>🟢 Attendance</h2><div class="big" id="percent">0%</div><div class="muted">This month's attendance</div><button class="success" style="margin-top:14px" onclick="present()">Mark Present Today</button><div id="attmsg" class="msg"></div></section>
-<section class="card"><h2>🏢 Company Status</h2><div class="status"><b>People visited today:</b> <span id="visitors">0</span></div><div class="status"><b>Company status:</b> <span id="cstatus">Operational</span></div><div class="status"><b>Date:</b> <span id="date"></span></div></section>
-<section class="card timer"><h2>⏱️ 2-Hour Work Timer</h2><p class="muted">You are expected to complete 2 hours of work today.</p><div class="clock" id="clock">02:00:00</div><div class="progress"><div class="bar" id="bar"></div></div><button class="primary" id="timerBtn" onclick="toggleTimer()">Start 2-Hour Work</button><p class="note" id="tnote">Start the timer when you begin work.</p></section>
-<section class="card"><h2>📝 Daily Work Report</h2><label>What did you do for the company today?</label><textarea id="work" placeholder="Write your work completed today..."></textarea><label>How did it help the company?</label><textarea id="impact" placeholder="Explain the result or impact..."></textarea><button class="primary" onclick="report()">Submit Report to CEO</button><div id="rmsg" class="msg"></div></section>
-<section class="card"><h2>💡 Improvement Suggestion</h2><textarea id="suggestion" placeholder="What can we improve after today's work?"></textarea><button class="primary" onclick="suggest()">Submit Suggestion</button><div id="smsg" class="msg"></div></section>
-</div>
-<section class="card" style="margin-top:18px"><h2>📅 Monthly Attendance</h2><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody id="attTable"></tbody></table></section>
-<section class="card" style="margin-top:18px"><h2>📨 Today's Submission Status</h2><div class="status">Daily report: <b id="rstatus">Not submitted</b></div><div class="status">Suggestion: <b id="sstatus">Not submitted</b></div><div class="status">2-hour work: <b id="tstatus">Not completed</b></div><p class="note">Reports and logout records are saved in this browser. Real CEO notifications across devices require a backend.</p></section>
-</main>
-<script>
-const eid=sessionStorage.getItem('employeeId')||'EMP001', d=new Date(), key=d.toISOString().slice(0,10);document.getElementById('eid').textContent=eid;document.getElementById('ename').textContent=eid==='EMP001'?'Employee 001':eid;document.getElementById('date').textContent=d.toLocaleDateString('en-IN');
-const ak='sajjad_attendance_'+eid,rk='sajjad_reports_'+eid,sk='sajjad_suggestions_'+eid,lk='sajjad_logout_events',tk='sajjad_timer_'+eid+'_'+key;
-function msg(id,t){let e=document.getElementById(id);e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2500)}
-function attendance(){return JSON.parse(localStorage.getItem(ak)||'{}')}
-function render(){let a=attendance(),y=d.getFullYear(),m=d.getMonth(),days=new Date(y,m+1,0).getDate(),p=0,rows='';for(let x=1;x<=days;x++){let k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(x).padStart(2,'0'),s=a[k]||'Not marked';if(s==='Present')p++;rows+=`<tr><td>${x}/${m+1}/${y}</td><td>${s}</td></tr>`}document.getElementById('attTable').innerHTML=rows;document.getElementById('percent').textContent=Math.round(p/Math.max(1,d.getDate())*100)+'%';document.getElementById('today').textContent=a[key]||'Not marked'}
-function present(){let a=attendance();a[key]='Present';localStorage.setItem(ak,JSON.stringify(a));render();msg('attmsg','Attendance marked Present for today.')}
-render();
-let old=JSON.parse(localStorage.getItem(rk)||'{}');if(old.date===key){work.value=old.work||'';impact.value=old.impact||'';rstatus.textContent='Submitted'}let oldS=JSON.parse(localStorage.getItem(sk)||'{}');if(oldS.date===key){suggestion.value=oldS.text||'';sstatus.textContent='Submitted'}
-function report(){let w=work.value.trim();if(!w)return alert('Please write what you worked on today.');localStorage.setItem(rk,JSON.stringify({employeeId:eid,date:key,work:w,impact:impact.value.trim(),submittedAt:new Date().toISOString()}));rstatus.textContent='Submitted';msg('rmsg','Daily report saved.')}
-function suggest(){let s=suggestion.value.trim();if(!s)return alert('Please enter an improvement suggestion.');localStorage.setItem(sk,JSON.stringify({employeeId:eid,date:key,text:s,submittedAt:new Date().toISOString()}));sstatus.textContent='Submitted';msg('smsg','Suggestion saved.')}
-const TOTAL=7200;let td=JSON.parse(localStorage.getItem(tk)||'{"remaining":7200,"running":false}'),timer=null;function update(){let h=Math.floor(td.remaining/3600),m=Math.floor(td.remaining%3600/60),s=td.remaining%60;clock.textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');bar.style.width=((TOTAL-td.remaining)/TOTAL*100)+'%';if(td.remaining<=0){td.remaining=0;td.running=false;timerBtn.textContent='2 Hours Completed';timerBtn.disabled=true;tstatus.textContent='Completed';tnote.textContent='Excellent. Your 2-hour work session is complete.';clearInterval(timer)}}function saveT(){localStorage.setItem(tk,JSON.stringify(td))}function toggleTimer(){if(td.remaining<=0)return;td.running=!td.running;if(td.running){timerBtn.textContent='Pause Work Timer';timer=setInterval(()=>{if(td.remaining>0)td.remaining--;saveT();update()},1000)}else{clearInterval(timer);timerBtn.textContent='Resume Work Timer'}saveT();update()}update();
-function logout(){let a=JSON.parse(localStorage.getItem(lk)||'[]');a.push({employeeId:eid,date:key,time:new Date().toLocaleString('en-IN'),message:'Employee logged out from SAJJAD HEALTH CARE'});localStorage.setItem(lk,JSON.stringify(a));sessionStorage.removeItem('employeeId');sessionStorage.removeItem('employeeLoginTime');alert('Logout recorded successfully.');location.href='employee-login.html'}
-</script></body></html>
