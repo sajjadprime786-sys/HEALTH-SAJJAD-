@@ -60,7 +60,10 @@ function getAttempts() {
 function saveAttempts(data) {
   sessionStorage.setItem(LOCKOUT_KEY, JSON.stringify(data));
 }
-
+const EMPLOYEES = {
+  "EMP001": { password: "pass123", name: "Employee One" },
+  "EMP002": { password: "pass456", name: "Employee Two" }
+};
 document.getElementById('loginForm').addEventListener('submit', function (e) {
   e.preventDefault();
   const eid = document.getElementById('eid').value.trim().toUpperCase();
